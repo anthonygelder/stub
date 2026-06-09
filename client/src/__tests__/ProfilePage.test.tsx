@@ -27,12 +27,20 @@ describe('ProfilePage', () => {
   });
 
   it('shows loading state initially', () => {
-    (api.get as any).mockReturnValue(new Promise(() => {})); // never resolves
+    (api.get as any).mockReturnValue(new Promise(() => {}));
     renderWithProviders(<ProfilePage />);
     expect(screen.getByText(/loading/i)).toBeDefined();
   });
 
-  it('shows empty state when no stubs', async () => {
+  it('shows demo stubs when API is unreachable', async () => {
+    (api.get as any).mockRejectedValue(new Error('Network Error'));
+    renderWithProviders(<ProfilePage />);
+    await waitFor(() => {
+      expect(screen.getByText(/static preview/i)).toBeDefined();
+    }, { timeout: 3000 });
+  });
+
+  it('shows empty state when API returns empty array', async () => {
     (api.get as any).mockResolvedValue({ data: [] });
     renderWithProviders(<ProfilePage />);
     await waitFor(() => {
