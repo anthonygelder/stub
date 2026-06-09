@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  handle    String   @unique
+  email     String   @unique
+  passwordHash String?
+  displayName String
+  avatar    String?
+  bio       String?
+  planTier  String   @default("free")
+  walletConnected Boolean @default(false)
+  emailForwardAddress String @unique
+  googleId  String?  @unique
+  appleId   String?  @unique
+  refreshToken String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  stubs      Stub[]
+  reactions  Reaction[]
+  collections Collection[]
+  following  Follow[]  @relation("Following")
+  followers  Follow[]  @relation("Followers")
+
+  @@map("users")
+}
+
+model Event {
+  id            String   @id @default(uuid())
+  type          String
+  title         String
+  subtitle      String?
+  venueName     String?  @map("venue_name")
+  venueCity     String?  @map("venue_city")
+  venueCountry  String?  @map("venue_country")
+  eventDate     DateTime @map("event_date")
+  eventTime     String?  @map("event_time")
+  tier          Int      @default(3)
+  externalSource String? @map("external_source")
+  externalId    String?  @map("external_id")
+  metadata      Json     @default("{}")
+  stubCount     Int      @default(0) @map("stub_count")
+  mergedInto    String?  @map("merged_into")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  stubs          Stub[]
+  corroborations Corroboration[]
+
+  @@unique([externalSource, externalId])
+  @@index([eventDate])
+  @@index([tier])
+  @@map("events")
+}
+
+model Stub {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  eventId            String   @map("event_id")
+  designTemplateId   String?  @map("design_template_id")
+  personalData       Json     @default("{}") @map("personal_data")
+  verificationStatus String   @default("none") @map("verification_status")
+  proofUrl           String?  @map("proof_url")
+  photoUrl           String?  @map("photo_url")
+  visibility         String   @default("public")
+  generatedImageUrl  String?  @map("generated_image_url")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id])
+  event     Event     @relation(fields: [eventId], references: [id])
+  reactions Reaction[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([eventId])
+  @@map("stubs")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("Following", fields: [followerId], references: [id])
+  following User @relation("Followers", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Reaction {
+  id        String   @id @default(uuid())
+  stubId    String   @map("stub_id")
+  userId    String   @map("user_id")
+  type      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  stub Stub @relation(fields: [stubId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([stubId, userId, type])
+  @@map("reactions")
+}
+
+model Collection {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  title       String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("collections")
+}
+
+model Corroboration {
+  id        String   @id @default(uuid())
+  eventId   String   @map("event_id")
+  userIds   String[] @map("user_ids")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@unique([eventId])
+  @@map("corroborations")
+}
