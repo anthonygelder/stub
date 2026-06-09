@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma';
 import { findOrCreateEvent } from './event.service';
 import { checkCorroboration } from './corroboration.service';
+import { renderAndSaveStub } from './render.service';
 
 interface CreateStubInput {
   type: string;
@@ -64,6 +65,22 @@ export async function createStub(userId: string, input: CreateStubInput) {
 
   // Trigger corroboration check
   await checkCorroboration(eventId);
+
+  // Fire-and-forget render
+  renderAndSaveStub(stub.id, {
+    eventTitle: stub.event.title,
+    eventType: stub.event.type,
+    venueName: stub.event.venueName || undefined,
+    venueCity: stub.event.venueCity || undefined,
+    eventDate: stub.event.eventDate.toISOString(),
+    seat: (input.personalData as any)?.seat,
+    companions: (input.personalData as any)?.companions,
+    userName: 'User',
+    userHandle: 'user',
+    stubNumber: 0,
+  }).then(path => {
+    prisma.stub.update({ where: { id: stub.id }, data: { generatedImageUrl: path } }).catch(() => {});
+  }).catch(err => console.error('Render failed:', err));
 
   return stub;
 }

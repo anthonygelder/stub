@@ -73,3 +73,10 @@ Stub follows a modular monolith for v1 with clean internal boundaries:
 - Email ticket confirmation parsing (Ticketmaster, StubHub, Delta, MLB)
 - Draft review flow — review, publish, or discard imported stubs
 - Catalog enrichment worker — promotes Tier 3 events to canonical
+
+### Phase 4 — Design System ✅
+- 6 stub templates with unique color palettes per event type
+- Server-side PNG rendering (node-canvas)
+- Async render worker — auto-generates stub images on creation
+- Open Graph image generation for social sharing
+- Template selector in the new stub form

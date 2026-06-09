@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../store/auth';
@@ -12,6 +12,15 @@ const EVENT_TYPES = [
   { value: 'custom', label: '✨ Other' },
 ] as const;
 
+const TEMPLATES = [
+  { id: 'concert', label: '🎵 Live Music', type: 'concert' },
+  { id: 'sports', label: '⚽ Game Day', type: 'sports' },
+  { id: 'flight', label: '✈️ Boarding Pass', type: 'flight' },
+  { id: 'comedy', label: '🎤 Comedy Night', type: 'comedy' },
+  { id: 'theater', label: '🎭 Theater', type: 'theater' },
+  { id: 'custom', label: '✨ Classic', type: 'custom' },
+];
+
 export function NewStubPage() {
   const [type, setType] = useState('concert');
   const [title, setTitle] = useState('');
@@ -19,12 +28,18 @@ export function NewStubPage() {
   const [venueCity, setVenueCity] = useState('');
   const [venueCountry, setVenueCountry] = useState('');
   const [eventDate, setEventDate] = useState('');
+  const [templateId, setTemplateId] = useState('concert');
   const [seat, setSeat] = useState('');
   const [companions, setCompanions] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  useEffect(() => {
+    const match = TEMPLATES.find(t => t.type === type);
+    if (match) setTemplateId(match.id);
+  }, [type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +53,7 @@ export function NewStubPage() {
         venueCity: venueCity || undefined,
         venueCountry: venueCountry || undefined,
         eventDate: new Date(eventDate).toISOString(),
+        designTemplateId: templateId,
         personalData: {
           seat: seat || undefined,
           companions: companions || undefined,
@@ -70,6 +86,23 @@ export function NewStubPage() {
               <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm text-gray-400 mb-2">Template</label>
+          <div className="grid grid-cols-3 gap-2">
+            {TEMPLATES.map(t => (
+              <button key={t.id} type="button"
+                onClick={() => setTemplateId(t.id)}
+                className={`text-xs p-2 rounded-lg border text-center transition-colors ${
+                  templateId === t.id
+                    ? 'border-stub-accent bg-stub-accent/10 text-stub-accent'
+                    : 'border-stub-border text-gray-400 hover:border-gray-600'
+                }`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div>

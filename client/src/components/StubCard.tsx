@@ -4,6 +4,7 @@ import { api } from '../api/client';
 interface StubCardProps {
   stub: {
     id: string;
+    generatedImageUrl?: string;
     personalData: any;
     createdAt: string;
     event: {
@@ -76,6 +77,9 @@ export function StubCard({ stub }: StubCardProps) {
 
   return (
     <div className="card hover:border-stub-accent/30 transition-colors cursor-pointer">
+      {stub.generatedImageUrl && (
+        <img src={stub.generatedImageUrl} alt="" className="w-full rounded-lg mb-3" loading="lazy" />
+      )}
       <div className="flex items-start gap-4">
         <div className="text-3xl">{TYPE_EMOJI[event.type] || '✨'}</div>
         <div className="flex-1 min-w-0">

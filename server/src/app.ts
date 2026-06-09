@@ -9,6 +9,7 @@ import socialRoutes from './routes/social.routes';
 import feedRoutes from './routes/feed.routes';
 import discoveryRoutes from './routes/discovery.routes';
 import importRoutes from './routes/import.routes';
+import ogRoutes from './routes/og.routes';
 import { optionalAuth } from './middleware/auth';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { getPublicStubsByHandle } from './services/stub.service';
@@ -28,6 +29,7 @@ export function createApp() {
   app.use('/api/feed', feedRoutes);
   app.use('/api/discover', discoveryRoutes);
   app.use('/api/import', importRoutes);
+  app.use('/og', ogRoutes);
 
   // User profile routes
   app.get('/api/users/:handle/stubs', optionalAuth, async (req, res) => {
