@@ -7,6 +7,8 @@ const app = createApp();
 
 describe('Core Loop — E2E', () => {
   beforeEach(async () => {
+    await prisma.collectionStub.deleteMany();
+    await prisma.collection.deleteMany();
     await prisma.reaction.deleteMany();
     await prisma.stub.deleteMany();
     await prisma.corroboration.deleteMany();

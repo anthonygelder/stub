@@ -9,6 +9,8 @@ let token: string;
 let userId: string;
 
 beforeEach(async () => {
+  await prisma.collectionStub.deleteMany();
+  await prisma.collection.deleteMany();
   await prisma.reaction.deleteMany();
   await prisma.stub.deleteMany();
   await prisma.corroboration.deleteMany();

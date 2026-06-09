@@ -6,6 +6,8 @@ import { prisma } from '../lib/prisma';
 const app = createApp();
 
 beforeEach(async () => {
+  await prisma.collectionStub.deleteMany();
+  await prisma.collection.deleteMany();
   await prisma.corroboration.deleteMany();
   await prisma.reaction.deleteMany();
   await prisma.stub.deleteMany();

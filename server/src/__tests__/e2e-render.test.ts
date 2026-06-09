@@ -10,6 +10,8 @@ const app = createApp();
 const IMAGE_DIR = path.join(__dirname, '..', '..', 'data', 'images');
 
 beforeEach(async () => {
+  await prisma.collectionStub.deleteMany();
+  await prisma.collection.deleteMany();
   await prisma.corroboration.deleteMany();
   await prisma.reaction.deleteMany();
   await prisma.stub.deleteMany();

@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import * as authService from '../services/auth.service';
+import jwt from 'jsonwebtoken';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { authLimiter, strictAuthLimiter } from '../middleware/rateLimiter';
+import passport from '../middleware/passport';
+import { config as appConfig } from '../config';
 
 const router = Router();
 
@@ -17,7 +21,7 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   try {
     const data = registerSchema.parse(req.body);
     const result = await authService.register(data);
@@ -34,7 +38,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', strictAuthLimiter, async (req, res) => {
   try {
     const data = loginSchema.parse(req.body);
     const result = await authService.login(data);
@@ -51,7 +55,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', authLimiter, async (req, res) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) {
@@ -77,6 +81,20 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
     }
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Google OAuth
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/login' }), (req, res) => {
+  const user = req.user as any;
+  const accessToken = jwt.sign({ sub: user.id }, appConfig.jwtSecret, { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ sub: user.id, type: 'refresh' }, appConfig.jwtRefreshSecret, { expiresIn: '7d' });
+  res.redirect(`${appConfig.clientUrl}/oauth?accessToken=${accessToken}&refreshToken=${refreshToken}&handle=${user.handle}`);
+});
+
+// Apple OAuth scaffold
+router.get('/apple', (req, res) => {
+  res.json({ error: 'Apple OAuth not configured. Set APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY.' });
 });
 
 export default router;

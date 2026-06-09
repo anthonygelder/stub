@@ -5,6 +5,7 @@ interface User {
   email: string;
   handle: string;
   displayName: string;
+  planTier?: string;
 }
 
 interface AuthState {

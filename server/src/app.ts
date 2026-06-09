@@ -14,17 +14,21 @@ import billingRoutes from './routes/billing.routes';
 import yearInReviewRoutes from './routes/year-in-review.routes';
 import collectionRoutes from './routes/collection.routes';
 import milestoneRoutes from './routes/milestone.routes';
+import userRoutes from './routes/user.routes';
+import uploadRoutes from './routes/upload.routes';
 import { optionalAuth } from './middleware/auth';
 import { errorHandler, notFound } from './middleware/errorHandler';
-import { getPublicStubsByHandle } from './services/stub.service';
-import { getPublicCollections } from './services/collection.service';
+import passport from './middleware/passport';
+import { prisma } from './lib/prisma';
+import { redis } from './lib/redis';
 
 export function createApp() {
   const app = express();
 
   app.use(helmet());
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
+  app.use(passport.initialize());
 
   app.use('/api/auth', authRoutes);
   app.use('/api/events', eventRoutes);
@@ -39,42 +43,28 @@ export function createApp() {
   app.use('/api/year-in-review', yearInReviewRoutes);
   app.use('/api/collections', collectionRoutes);
   app.use('/api/milestones', milestoneRoutes);
+  app.use('/api/users', userRoutes);
+  app.use('/api/upload', uploadRoutes);
 
-  // User profile routes
-  app.get('/api/users/:handle/stubs', optionalAuth, async (req, res) => {
+  app.get('/health', async (_req, res) => {
+    const checks: Record<string, string> = {};
+
     try {
-      const stubs = await getPublicStubsByHandle(req.params.handle);
-      res.json(stubs.map((s: any) => ({
-        id: s.id,
-        personalData: s.personalData,
-        visibility: s.visibility,
-        createdAt: s.createdAt,
-        event: s.event,
-      })));
-    } catch (err: any) {
-      if (err.message === 'USER_NOT_FOUND') {
-        return res.status(404).json({ error: 'User not found' });
-      }
-      console.error(err);
-      res.status(500).json({ error: 'Internal server error' });
+      await prisma.$queryRaw`SELECT 1`;
+      checks.database = 'ok';
+    } catch {
+      checks.database = 'error';
     }
-  });
 
-  app.get('/api/users/:handle/collections', optionalAuth, async (req, res) => {
     try {
-      const collections = await getPublicCollections(req.params.handle);
-      res.json(collections);
-    } catch (err: any) {
-      if (err.message === 'USER_NOT_FOUND') {
-        return res.status(404).json({ error: 'User not found' });
-      }
-      console.error(err);
-      res.status(500).json({ error: 'Internal server error' });
+      await redis.ping();
+      checks.redis = 'ok';
+    } catch {
+      checks.redis = 'unavailable';
     }
-  });
 
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
+    const status = Object.values(checks).every(v => v === 'ok') ? 200 : 503;
+    res.status(status).json({ status: status === 200 ? 'ok' : 'degraded', checks });
   });
 
   app.use(notFound);

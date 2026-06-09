@@ -80,6 +80,7 @@ model Stub {
   user      User      @relation(fields: [userId], references: [id])
   event     Event     @relation(fields: [eventId], references: [id])
   reactions Reaction[]
+  collectionStubs CollectionStub[]
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([eventId])
@@ -120,9 +121,22 @@ model Collection {
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user  User             @relation(fields: [userId], references: [id])
+  stubs CollectionStub[]
 
   @@map("collections")
+}
+
+model CollectionStub {
+  collectionId String   @map("collection_id")
+  stubId       String   @map("stub_id")
+  addedAt      DateTime @default(now()) @map("added_at")
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  stub       Stub       @relation(fields: [stubId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, stubId])
+  @@map("collection_stubs")
 }
 
 model Corroboration {

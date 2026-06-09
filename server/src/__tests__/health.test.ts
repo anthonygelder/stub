@@ -5,9 +5,11 @@ import { createApp } from '../app';
 const app = createApp();
 
 describe('GET /health', () => {
-  it('should return 200 with status ok', async () => {
+  it('should return health check with database and redis status', async () => {
     const res = await request(app).get('/health');
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect([200, 503]).toContain(res.status);
+    expect(['ok', 'degraded']).toContain(res.body.status);
+    expect(res.body.checks).toHaveProperty('database');
+    expect(res.body.checks).toHaveProperty('redis');
   });
 });

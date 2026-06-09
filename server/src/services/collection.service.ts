@@ -25,3 +25,24 @@ export async function deleteCollection(userId: string, collectionId: string) {
   if (!col) throw new Error('NOT_FOUND');
   await prisma.collection.delete({ where: { id: collectionId } });
 }
+
+export async function addStubToCollection(userId: string, collectionId: string, stubId: string) {
+  const col = await prisma.collection.findFirst({ where: { id: collectionId, userId } });
+  if (!col) throw new Error('NOT_FOUND');
+  await prisma.collectionStub.create({ data: { collectionId, stubId } });
+}
+
+export async function removeStubFromCollection(userId: string, collectionId: string, stubId: string) {
+  const col = await prisma.collection.findFirst({ where: { id: collectionId, userId } });
+  if (!col) throw new Error('NOT_FOUND');
+  await prisma.collectionStub.delete({ where: { collectionId_stubId: { collectionId, stubId } } });
+}
+
+export async function getCollectionStubs(collectionId: string) {
+  const stubs = await prisma.collectionStub.findMany({
+    where: { collectionId },
+    include: { stub: { include: { event: true } } },
+    orderBy: { addedAt: 'desc' },
+  });
+  return stubs.map(s => s.stub);
+}

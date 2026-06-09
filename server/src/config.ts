@@ -1,13 +1,38 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+function requireEnv(key: string, fallback?: string): string {
+  const value = process.env[key] || fallback;
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
+}
+
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const config = {
   port: parseInt(process.env.PORT || '3001', 10),
-  jwtSecret: process.env.JWT_SECRET || 'dev-secret',
-  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',
+  jwtSecret: isProduction ? requireEnv('JWT_SECRET') : (process.env.JWT_SECRET || 'dev-secret'),
+  jwtRefreshSecret: isProduction ? requireEnv('JWT_REFRESH_SECRET') : (process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret'),
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   nodeEnv: process.env.NODE_ENV || 'development',
+  databaseUrl: requireEnv('DATABASE_URL', isProduction ? undefined : 'postgresql://stub:stub@localhost:5432/stub_dev'),
   redis: {
     url: process.env.REDIS_URL || 'redis://localhost:6379',
+  },
+  oauth: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      callbackUrl: `${process.env.CLIENT_URL || 'http://localhost:5173'}/api/auth/google/callback`,
+    },
+    apple: {
+      clientId: process.env.APPLE_CLIENT_ID || '',
+      teamId: process.env.APPLE_TEAM_ID || '',
+      keyId: process.env.APPLE_KEY_ID || '',
+      privateKey: process.env.APPLE_PRIVATE_KEY || '',
+      callbackUrl: `${process.env.CLIENT_URL || 'http://localhost:5173'}/api/auth/apple/callback`,
+    },
   },
 };
