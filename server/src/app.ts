@@ -5,6 +5,7 @@ import authRoutes from './routes/auth.routes';
 import eventRoutes from './routes/event.routes';
 import stubRoutes from './routes/stub.routes';
 import { optionalAuth } from './middleware/auth';
+import { errorHandler, notFound } from './middleware/errorHandler';
 import { getPublicStubsByHandle } from './services/stub.service';
 
 export function createApp() {
@@ -41,6 +42,9 @@ export function createApp() {
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
+
+  app.use(notFound);
+  app.use(errorHandler);
 
   return app;
 }
