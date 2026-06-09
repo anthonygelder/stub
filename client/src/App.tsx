@@ -4,6 +4,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { NewStubPage } from './pages/NewStubPage';
+import { FeedPage } from './pages/FeedPage';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/new" element={<NewStubPage />} />
+      <Route path="/feed" element={<FeedPage />} />
       <Route path="/:handle" element={<ProfilePage />} />
     </Routes>
   );

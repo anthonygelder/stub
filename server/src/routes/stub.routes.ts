@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate, AuthRequest, optionalAuth } from '../middleware/auth';
 import * as stubService from '../services/stub.service';
+import { fanoutOnStubCreate } from '../services/feed.service';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     const data = createStubSchema.parse(req.body);
     const stub = await stubService.createStub(req.userId!, data);
     res.status(201).json({ stub: { id: stub.id, personalData: stub.personalData, visibility: stub.visibility, createdAt: stub.createdAt }, event: stub.event });
+    fanoutOnStubCreate(req.userId!, stub.id).catch(err => console.error('Fan-out failed:', err));
   } catch (err: any) {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation failed', details: err.errors });

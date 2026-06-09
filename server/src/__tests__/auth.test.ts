@@ -7,8 +7,11 @@ const app = createApp();
 
 describe('POST /api/auth/register', () => {
   beforeEach(async () => {
+    await prisma.reaction.deleteMany();
     await prisma.stub.deleteMany();
+    await prisma.corroboration.deleteMany();
     await prisma.event.deleteMany();
+    await prisma.follow.deleteMany();
     await prisma.user.deleteMany();
   });
 
@@ -52,8 +55,11 @@ describe('POST /api/auth/register', () => {
 
 describe('POST /api/auth/login', () => {
   beforeEach(async () => {
+    await prisma.reaction.deleteMany();
     await prisma.stub.deleteMany();
+    await prisma.corroboration.deleteMany();
     await prisma.event.deleteMany();
+    await prisma.follow.deleteMany();
     await prisma.user.deleteMany();
     await request(app).post('/api/auth/register').send({
       email: 'login@example.com', handle: 'logintest', displayName: 'Login Test',

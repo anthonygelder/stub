@@ -8,8 +8,10 @@ const app = createApp();
 let token: string;
 
 beforeEach(async () => {
+  await prisma.reaction.deleteMany();
   await prisma.stub.deleteMany();
   await prisma.event.deleteMany();
+  await prisma.follow.deleteMany();
   await prisma.user.deleteMany();
 
   const res = await request(app).post('/api/auth/register').send({

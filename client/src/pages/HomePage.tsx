@@ -22,6 +22,9 @@ export function HomePage() {
             <Link to={`/${user?.handle}`} className="btn-primary">
               My Collection
             </Link>
+            <Link to="/feed" className="btn-secondary">
+              Feed
+            </Link>
             <Link to="/new" className="btn-secondary">
               + New Stub
             </Link>

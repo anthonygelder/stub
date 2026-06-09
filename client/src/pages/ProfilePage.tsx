@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { StubCard } from '../components/StubCard';
+import { FollowButton } from '../components/FollowButton';
 import { useAuth } from '../store/auth';
 
 const DEMO_STUBS = [
@@ -60,6 +61,12 @@ export function ProfilePage() {
     retry: 0,
   });
 
+  const { data: followStats } = useQuery({
+    queryKey: ['followStats', handle],
+    queryFn: async () => { const { data } = await api.get(`/social/${handle}/follow-stats`); return data; },
+    enabled: !!handle,
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -100,8 +107,19 @@ export function ProfilePage() {
     <div className="min-h-screen max-w-2xl mx-auto p-4">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">{handle || user?.displayName || 'Profile'}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">{handle || user?.displayName || 'Profile'}</h1>
+            {handle && user && handle !== user.handle && (
+              <FollowButton handle={handle} isFollowing={false} />
+            )}
+          </div>
           <p className="text-gray-500 text-sm">{stubs?.length || 0} stubs</p>
+          {followStats && (
+            <p className="text-gray-500 text-sm mt-1">
+              <span className="font-semibold text-white">{followStats.followers}</span> followers ·{' '}
+              <span className="font-semibold text-white">{followStats.following}</span> following
+            </p>
+          )}
         </div>
         {user && (
           <Link to="/new" className="btn-primary text-sm px-4 py-2">

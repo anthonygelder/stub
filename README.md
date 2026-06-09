@@ -52,3 +52,18 @@ Stub follows a modular monolith for v1 with clean internal boundaries:
 - `client/` — React PWA (Vite + TypeScript + Tailwind)
 - `server/` — Express REST API with Prisma ORM
 - `server/prisma/` — Database schema and migrations
+
+## Features
+
+### Phase 1 — Core Loop ✅
+- Email/password authentication with JWT
+- Manual stub logging with event deduplication
+- Personal profile walls with stub collections
+- Event catalog with fuzzy matching
+
+### Phase 2 — Social ✅
+- Follow/unfollow other collectors
+- Home feed with Redis-powered fan-out
+- Reactions: was_there, jealous, want_to_go
+- Corroboration: crowd-verified event authenticity
+- Discovery: trending events, shared experiences

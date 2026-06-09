@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { findOrCreateEvent } from './event.service';
+import { checkCorroboration } from './corroboration.service';
 
 interface CreateStubInput {
   type: string;
@@ -60,6 +61,9 @@ export async function createStub(userId: string, input: CreateStubInput) {
     where: { id: eventId },
     data: { stubCount: { increment: 1 } },
   });
+
+  // Trigger corroboration check
+  await checkCorroboration(eventId);
 
   return stub;
 }

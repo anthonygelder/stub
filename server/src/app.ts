@@ -4,6 +4,10 @@ import helmet from 'helmet';
 import authRoutes from './routes/auth.routes';
 import eventRoutes from './routes/event.routes';
 import stubRoutes from './routes/stub.routes';
+import reactionRoutes from './routes/reaction.routes';
+import socialRoutes from './routes/social.routes';
+import feedRoutes from './routes/feed.routes';
+import discoveryRoutes from './routes/discovery.routes';
 import { optionalAuth } from './middleware/auth';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { getPublicStubsByHandle } from './services/stub.service';
@@ -18,6 +22,10 @@ export function createApp() {
   app.use('/api/auth', authRoutes);
   app.use('/api/events', eventRoutes);
   app.use('/api/stubs', stubRoutes);
+  app.use('/api/stubs', reactionRoutes);
+  app.use('/api/social', socialRoutes);
+  app.use('/api/feed', feedRoutes);
+  app.use('/api/discover', discoveryRoutes);
 
   // User profile routes
   app.get('/api/users/:handle/stubs', optionalAuth, async (req, res) => {
