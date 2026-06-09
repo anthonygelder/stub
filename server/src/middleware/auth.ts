@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
+import { prisma } from '../lib/prisma';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -34,4 +35,16 @@ export function optionalAuth(req: AuthRequest, _res: Response, next: NextFunctio
     }
   }
   next();
+}
+
+export function requirePlan(plan: string) {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.userId) return res.status(401).json({ error: 'Authentication required' });
+    const user = await prisma.user.findUnique({ where: { id: req.userId }, select: { planTier: true } });
+    if (!user) return res.status(401).json({ error: 'User not found' });
+    if (user.planTier !== plan) {
+      return res.status(403).json({ error: `Requires ${plan} plan`, code: 'PLAN_REQUIRED' });
+    }
+    next();
+  };
 }

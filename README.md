@@ -56,27 +56,42 @@ Stub follows a modular monolith for v1 with clean internal boundaries:
 ## Features
 
 ### Phase 1 — Core Loop ✅
-- Email/password authentication with JWT
-- Manual stub logging with event deduplication
+- Email/password authentication with JWT access/refresh tokens
+- Manual stub logging with event deduplication pipeline
 - Personal profile walls with stub collections
-- Event catalog with fuzzy matching
+- Event catalog with fuzzy matching and tiered trust model
 
 ### Phase 2 — Social ✅
 - Follow/unfollow other collectors
-- Home feed with Redis-powered fan-out
-- Reactions: was_there, jealous, want_to_go
-- Corroboration: crowd-verified event authenticity
-- Discovery: trending events, shared experiences
+- Home feed with Redis-powered hybrid fan-out
+- Reactions: was_there, jealous, want_to_go (toggle behavior)
+- Corroboration: crowd-verified event authenticity (3+ users)
+- Discovery: trending events, shared experiences, who else was there
 
 ### Phase 3 — Import ✅
 - Wallet pass parsing (Apple pkpass + Google Wallet)
 - Email ticket confirmation parsing (Ticketmaster, StubHub, Delta, MLB)
 - Draft review flow — review, publish, or discard imported stubs
+- Batch import with dedup
 - Catalog enrichment worker — promotes Tier 3 events to canonical
 
 ### Phase 4 — Design System ✅
-- 6 stub templates with unique color palettes per event type
+- 6 standard templates with unique color palettes per event type
+- 3 premium templates (Vintage, Gold Foil, Holographic)
 - Server-side PNG rendering (node-canvas)
 - Async render worker — auto-generates stub images on creation
 - Open Graph image generation for social sharing
 - Template selector in the new stub form
+- Year in Review summary images (watermark-free for Stub+)
+
+### Phase 5 — Monetization ✅
+- Stub+ subscription via Stripe (checkout + webhook + customer portal)
+- Plan tier enforcement middleware (free vs plus)
+- Premium templates gated behind Stub+
+
+### Phase 6 — Growth ✅
+- PWA support — installable, offline service worker, manifest
+- User-curated collections (create, edit, delete)
+- Milestone badges (First Stub → Museum at 250 stubs)
+- Framer Motion animations — staggered card reveals
+- Share button with Web Share API + clipboard fallback

@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { api } from '../api/client';
 import { StubCard } from '../components/StubCard';
 import { FollowButton } from '../components/FollowButton';
@@ -95,8 +96,15 @@ export function ProfilePage() {
         </div>
 
         <div className="grid gap-4">
-          {DEMO_STUBS.map((stub) => (
-            <StubCard key={stub.id} stub={stub} />
+          {DEMO_STUBS.map((stub, i) => (
+            <motion.div
+              key={stub.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.3 }}
+            >
+              <StubCard stub={stub} />
+            </motion.div>
           ))}
         </div>
       </div>
@@ -141,8 +149,15 @@ export function ProfilePage() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {stubs.map((stub: any) => (
-            <StubCard key={stub.id} stub={stub} />
+          {stubs.map((stub: any, i: number) => (
+            <motion.div
+              key={stub.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.3 }}
+            >
+              <StubCard stub={stub} />
+            </motion.div>
           ))}
         </div>
       )}

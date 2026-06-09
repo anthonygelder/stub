@@ -10,9 +10,14 @@ import feedRoutes from './routes/feed.routes';
 import discoveryRoutes from './routes/discovery.routes';
 import importRoutes from './routes/import.routes';
 import ogRoutes from './routes/og.routes';
+import billingRoutes from './routes/billing.routes';
+import yearInReviewRoutes from './routes/year-in-review.routes';
+import collectionRoutes from './routes/collection.routes';
+import milestoneRoutes from './routes/milestone.routes';
 import { optionalAuth } from './middleware/auth';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { getPublicStubsByHandle } from './services/stub.service';
+import { getPublicCollections } from './services/collection.service';
 
 export function createApp() {
   const app = express();
@@ -30,6 +35,10 @@ export function createApp() {
   app.use('/api/discover', discoveryRoutes);
   app.use('/api/import', importRoutes);
   app.use('/og', ogRoutes);
+  app.use('/api/billing', billingRoutes);
+  app.use('/api/year-in-review', yearInReviewRoutes);
+  app.use('/api/collections', collectionRoutes);
+  app.use('/api/milestones', milestoneRoutes);
 
   // User profile routes
   app.get('/api/users/:handle/stubs', optionalAuth, async (req, res) => {
@@ -42,6 +51,19 @@ export function createApp() {
         createdAt: s.createdAt,
         event: s.event,
       })));
+    } catch (err: any) {
+      if (err.message === 'USER_NOT_FOUND') {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/users/:handle/collections', optionalAuth, async (req, res) => {
+    try {
+      const collections = await getPublicCollections(req.params.handle);
+      res.json(collections);
     } catch (err: any) {
       if (err.message === 'USER_NOT_FOUND') {
         return res.status(404).json({ error: 'User not found' });

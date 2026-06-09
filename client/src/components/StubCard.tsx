@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../api/client';
+import { ShareButton } from './ShareButton';
 
 interface StubCardProps {
   stub: {
@@ -54,7 +56,7 @@ function ReactionBar({ stubId }: { stubId: string }) {
   const emojis: Record<string, string> = { was_there: '✅', jealous: '😮', want_to_go: '🎯' };
 
   return (
-    <div className="flex gap-2 mt-3 pt-3 border-t border-stub-border">
+    <div className="flex gap-2">
       {types.map(t => (
         <button key={t} onClick={() => react(t)}
           className={`text-xs px-2 py-1 rounded-full border transition-colors ${
@@ -76,7 +78,12 @@ export function StubCard({ stub }: StubCardProps) {
   });
 
   return (
-    <div className="card hover:border-stub-accent/30 transition-colors cursor-pointer">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="card hover:border-stub-accent/30 transition-colors cursor-pointer"
+    >
       {stub.generatedImageUrl && (
         <img src={stub.generatedImageUrl} alt="" className="w-full rounded-lg mb-3" loading="lazy" />
       )}
@@ -95,7 +102,10 @@ export function StubCard({ stub }: StubCardProps) {
           )}
         </div>
       </div>
-      <ReactionBar stubId={stub.id} />
-    </div>
+      <div className="flex justify-between items-center mt-3 pt-3 border-t border-stub-border">
+        <ReactionBar stubId={stub.id} />
+        <ShareButton stubId={stub.id} />
+      </div>
+    </motion.div>
   );
 }

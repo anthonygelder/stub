@@ -5,10 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/stub.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Stub — Digital mementos for live experiences" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#f5a623" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Stub" />
+    <link rel="apple-touch-icon" href="/stub-192.png" />
     <title>Stub</title>
   </head>
   <body class="bg-stub-black text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js');
+        });
+      }
+    </script>
   </body>
 </html>
