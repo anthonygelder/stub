@@ -67,3 +67,9 @@ Stub follows a modular monolith for v1 with clean internal boundaries:
 - Reactions: was_there, jealous, want_to_go
 - Corroboration: crowd-verified event authenticity
 - Discovery: trending events, shared experiences
+
+### Phase 3 — Import ✅
+- Wallet pass parsing (Apple pkpass + Google Wallet)
+- Email ticket confirmation parsing (Ticketmaster, StubHub, Delta, MLB)
+- Draft review flow — review, publish, or discard imported stubs
+- Catalog enrichment worker — promotes Tier 3 events to canonical
