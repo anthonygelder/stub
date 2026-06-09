@@ -72,6 +72,9 @@ model Stub {
   photoUrl           String?  @map("photo_url")
   visibility         String   @default("public")
   generatedImageUrl  String?  @map("generated_image_url")
+  importSource       String?  @map("import_source")
+  isDraft            Boolean  @default(false) @map("is_draft")
+  importData         Json?    @map("import_data")
   createdAt          DateTime @default(now()) @map("created_at")
 
   user      User      @relation(fields: [userId], references: [id])
