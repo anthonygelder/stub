@@ -3,7 +3,6 @@ name = "stub"
 
 [build]
 builder = "nixpacks"
-buildCommand = "cd server && npx prisma generate && cd .. && npm run build"
 watchPatterns = ["client/src/**", "server/src/**", "package.json"]
 
 [build.variables]
