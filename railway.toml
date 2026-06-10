@@ -1,9 +1,17 @@
+[service]
+name = "stub"
+
 [build]
 builder = "nixpacks"
+buildCommand = "npm run build"
+watchPatterns = ["client/src/**", "server/src/**", "package.json"]
 
 [build.variables]
-RAILPACK_INSTALL_CMD = "npm install --legacy-peer-deps"
+NIXPACKS_INSTALL_CMD = "npm install --legacy-peer-deps"
 
 [deploy]
 startCommand = "cd server && npx prisma generate && npx prisma migrate deploy && node dist/index.js"
 healthcheckPath = "/health"
+
+[deploy.variables]
+PORT = "3000"
