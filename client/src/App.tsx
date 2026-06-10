@@ -9,6 +9,7 @@ import { FeedPage } from './pages/FeedPage';
 import { ImportPage } from './pages/ImportPage';
 import { ImportReviewPage } from './pages/ImportReviewPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { OAuthCallbackPage } from './pages/OAuthCallbackPage';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/oauth" element={<OAuthCallbackPage />} />
         <Route path="/new" element={<NewStubPage />} />
         <Route path="/feed" element={<FeedPage />} />
         <Route path="/settings" element={<SettingsPage />} />

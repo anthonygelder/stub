@@ -1,5 +1,48 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../store/auth';
+import { StubStack } from '../components/StubStack';
+
+const DEMO_STUBS = [
+  {
+    id: 'demo-1',
+    personalData: { seat: 'Section 104, Row J, Seat 7' },
+    createdAt: '2024-09-20T00:00:00Z',
+    event: {
+      id: 'demo-event-1',
+      type: 'concert',
+      title: 'Radiohead',
+      venueName: 'Madison Square Garden',
+      venueCity: 'New York',
+      eventDate: '2024-09-20T20:00:00Z',
+    },
+  },
+  {
+    id: 'demo-2',
+    personalData: {},
+    createdAt: '2024-07-04T00:00:00Z',
+    event: {
+      id: 'demo-event-2',
+      type: 'flight',
+      title: 'JFK → LHR',
+      venueName: 'Delta Air Lines',
+      venueCity: 'London',
+      eventDate: '2024-07-04T14:30:00Z',
+    },
+  },
+  {
+    id: 'demo-3',
+    personalData: { seat: 'Behind home plate' },
+    createdAt: '2024-05-12T00:00:00Z',
+    event: {
+      id: 'demo-event-3',
+      type: 'sports',
+      title: 'Yankees vs Red Sox',
+      venueName: 'Yankee Stadium',
+      venueCity: 'Bronx, NY',
+      eventDate: '2024-05-12T19:05:00Z',
+    },
+  },
+];
 
 export function HomePage() {
   const { isAuthenticated, user } = useAuth();
@@ -68,27 +111,9 @@ export function HomePage() {
 
       {/* Demo preview */}
       <div className="border-t border-stub-border py-16">
-        <div className="max-w-2xl mx-auto px-4">
+        <div className="max-w-md mx-auto px-4">
           <h2 className="text-lg font-semibold text-gray-400 text-center mb-6">Demo Collection</h2>
-          <div className="grid gap-4">
-            {[
-              { type: 'concert', title: 'Radiohead — A Moon Shaped Pool Tour', venue: 'Madison Square Garden', city: 'New York', date: 'September 20, 2024', seat: 'Section 104, Row J, Seat 7' },
-              { type: 'flight', title: 'JFK → LHR', venue: 'Delta Air Lines', city: 'London', date: 'July 4, 2024', seat: undefined },
-              { type: 'sports', title: 'Yankees vs Red Sox', venue: 'Yankee Stadium', city: 'Bronx, NY', date: 'May 12, 2024', seat: 'Behind home plate' },
-            ].map((s, i) => (
-              <div key={i} className="card hover:border-stub-accent/30 transition-colors">
-                <div className="flex items-start gap-4">
-                  <div className="text-3xl">{{ concert: '🎵', flight: '✈️', sports: '⚽' }[s.type]}</div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg truncate">{s.title}</h3>
-                    <p className="text-gray-400 text-sm mt-1">{s.venue}{s.city ? ` · ${s.city}` : ''}</p>
-                    <p className="text-gray-500 text-sm mt-1">{s.date}</p>
-                    {s.seat && <p className="text-stub-accent text-xs mt-2">{s.seat}</p>}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <StubStack stubs={DEMO_STUBS} />
         </div>
       </div>
 

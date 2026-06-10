@@ -89,7 +89,7 @@ router.get('/google/callback', passport.authenticate('google', { session: false,
   const user = req.user as any;
   const accessToken = jwt.sign({ sub: user.id }, appConfig.jwtSecret, { expiresIn: '15m' });
   const refreshToken = jwt.sign({ sub: user.id, type: 'refresh' }, appConfig.jwtRefreshSecret, { expiresIn: '7d' });
-  res.redirect(`${appConfig.clientUrl}/oauth?accessToken=${accessToken}&refreshToken=${refreshToken}&handle=${user.handle}`);
+  res.redirect(`${appConfig.clientUrl}/stub/oauth?accessToken=${accessToken}&refreshToken=${refreshToken}&handle=${user.handle}`);
 });
 
 // Apple OAuth scaffold

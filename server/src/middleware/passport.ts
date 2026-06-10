@@ -7,7 +7,7 @@ if (config.oauth.google.clientId) {
   passport.use(new GoogleStrategy({
     clientID: config.oauth.google.clientId,
     clientSecret: config.oauth.google.clientSecret,
-    callbackURL: '/api/auth/google/callback',
+    callbackURL: config.oauth.google.callbackUrl,
   }, async (_accessToken, _refreshToken, profile, done) => {
     try {
       const user = await findOrCreateOAuthUser('google', profile.id, {

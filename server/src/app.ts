@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './routes/auth.routes';
@@ -21,6 +22,7 @@ import { errorHandler, notFound } from './middleware/errorHandler';
 import passport from './middleware/passport';
 import { prisma } from './lib/prisma';
 import { redis } from './lib/redis';
+import { config } from './config';
 
 export function createApp() {
   const app = express();
@@ -45,6 +47,19 @@ export function createApp() {
   app.use('/api/milestones', milestoneRoutes);
   app.use('/api/users', userRoutes);
   app.use('/api/upload', uploadRoutes);
+
+  // Serve client build in production
+  if (config.nodeEnv === 'production') {
+    const clientDist = path.resolve(__dirname, '../../client/dist');
+    app.use('/stub', express.static(clientDist));
+    app.get('/stub/*', (_req, res) => {
+      res.sendFile(path.join(clientDist, 'index.html'));
+    });
+    // Redirect root to /stub/
+    app.get('/', (_req, res) => {
+      res.redirect('/stub/');
+    });
+  }
 
   app.get('/health', async (_req, res) => {
     const checks: Record<string, string> = {};
