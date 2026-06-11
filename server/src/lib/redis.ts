@@ -38,6 +38,16 @@ export async function getCachedEvent(eventId: string) {
   return raw ? JSON.parse(raw) : null;
 }
 
+// Single-use OAuth exchange codes — avoids putting tokens in the redirect URL.
+export async function storeOAuthCode(code: string, userId: string, ttlSec = 60) {
+  await redis.setex(`oauth_code:${code}`, ttlSec, userId);
+}
+
+export async function consumeOAuthCode(code: string): Promise<string | null> {
+  // GETDEL is atomic, so a code can only be redeemed once.
+  return redis.getdel(`oauth_code:${code}`);
+}
+
 export async function incrementCorroborationCount(eventId: string) {
   return redis.incr(`corroboration:${eventId}`);
 }

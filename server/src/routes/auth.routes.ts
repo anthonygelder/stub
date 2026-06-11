@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import * as authService from '../services/auth.service';
-import jwt from 'jsonwebtoken';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { asyncHandler } from '../middleware/asyncHandler';
 import { authLimiter, strictAuthLimiter } from '../middleware/rateLimiter';
 import passport from '../middleware/passport';
 import { config as appConfig } from '../config';
@@ -21,79 +21,58 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-router.post('/register', authLimiter, async (req, res) => {
-  try {
-    const data = registerSchema.parse(req.body);
-    const result = await authService.register(data);
-    res.status(201).json(result);
-  } catch (err: any) {
-    if (err instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: err.errors });
-    }
-    if (err instanceof authService.AuthError) {
-      return res.status(err.statusCode).json({ error: err.message, code: err.code });
-    }
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+router.post('/register', authLimiter, asyncHandler(async (req, res) => {
+  const data = registerSchema.parse(req.body);
+  res.status(201).json(await authService.register(data));
+}));
 
-router.post('/login', strictAuthLimiter, async (req, res) => {
-  try {
-    const data = loginSchema.parse(req.body);
-    const result = await authService.login(data);
-    res.json(result);
-  } catch (err: any) {
-    if (err instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: err.errors });
-    }
-    if (err instanceof authService.AuthError) {
-      return res.status(err.statusCode).json({ error: err.message, code: err.code });
-    }
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+router.post('/login', strictAuthLimiter, asyncHandler(async (req, res) => {
+  const data = loginSchema.parse(req.body);
+  res.json(await authService.login(data));
+}));
 
-router.post('/refresh', authLimiter, async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
-      return res.status(400).json({ error: 'Refresh token required' });
-    }
-    const tokens = await authService.refreshAccessToken(refreshToken);
-    res.json(tokens);
-  } catch (err: any) {
-    if (err instanceof authService.AuthError) {
-      return res.status(err.statusCode).json({ error: err.message, code: err.code });
-    }
-    res.status(500).json({ error: 'Internal server error' });
+router.post('/refresh', authLimiter, asyncHandler(async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({ error: 'Refresh token required' });
   }
-});
+  res.json(await authService.refreshAccessToken(refreshToken));
+}));
 
-router.get('/me', authenticate, async (req: AuthRequest, res) => {
-  try {
-    const user = await authService.getUserById(req.userId!);
-    res.json(user);
-  } catch (err: any) {
-    if (err instanceof authService.AuthError) {
-      return res.status(err.statusCode).json({ error: err.message, code: err.code });
-    }
-    res.status(500).json({ error: 'Internal server error' });
+router.get('/me', authenticate, asyncHandler(async (req: AuthRequest, res) => {
+  res.json(await authService.getUserById(req.userId!));
+}));
+
+// Exchange a single-use OAuth code (from the callback redirect) for tokens.
+router.post('/exchange', authLimiter, asyncHandler(async (req, res) => {
+  const { code } = req.body;
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({ error: 'Code required' });
   }
-});
+  res.json(await authService.exchangeOAuthCode(code));
+}));
+
+// Revoke the server-side refresh token so it can't be reused after logout.
+router.post('/logout', authenticate, asyncHandler(async (req: AuthRequest, res) => {
+  await authService.logout(req.userId!);
+  res.json({ success: true });
+}));
 
 // Google OAuth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/login' }), (req, res) => {
-  const user = req.user as any;
-  const accessToken = jwt.sign({ sub: user.id }, appConfig.jwtSecret, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ sub: user.id, type: 'refresh' }, appConfig.jwtRefreshSecret, { expiresIn: '7d' });
-  res.redirect(`${appConfig.clientUrl}/stub/oauth?accessToken=${accessToken}&refreshToken=${refreshToken}&handle=${user.handle}`);
-});
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+  asyncHandler(async (req, res) => {
+    const user = req.user as any;
+    // Hand the client a single-use code instead of tokens-in-URL.
+    const code = await authService.createOAuthCode(user.id);
+    res.redirect(`${appConfig.clientUrl}/stub/oauth?code=${code}`);
+  }),
+);
 
 // Apple OAuth scaffold
-router.get('/apple', (req, res) => {
+router.get('/apple', (_req, res) => {
   res.json({ error: 'Apple OAuth not configured. Set APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, and APPLE_PRIVATE_KEY.' });
 });
 

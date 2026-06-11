@@ -11,7 +11,7 @@ export function ShareButton({ stubId, label = 'Share' }: ShareButtonProps) {
   const handleShare = async () => {
     const url = `${window.location.origin}/${stubId}`;
     if (navigator.share) {
-      try { await navigator.share({ title: 'Stub', url }); } catch {}
+      try { await navigator.share({ title: 'Stub', url }); } catch { /* user cancelled share */ }
     } else {
       await navigator.clipboard.writeText(url);
       setCopied(true);

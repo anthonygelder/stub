@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { redis, connectRedis, addToFeed, getFeed, cacheEvent, getCachedEvent, incrementCorroborationCount, getCorroborationCount } from '../lib/redis';
 
 beforeAll(async () => {
-  try { await connectRedis(); } catch {}
+  try { await connectRedis(); } catch { /* redis optional in this env */ }
 });
 
 afterAll(async () => {

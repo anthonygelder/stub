@@ -9,22 +9,23 @@ export function OAuthCallbackPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const accessToken = searchParams.get('accessToken');
-    const refreshToken = searchParams.get('refreshToken');
-    const handle = searchParams.get('handle');
+    const code = searchParams.get('code');
 
-    if (accessToken && refreshToken) {
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      api.get('/auth/me').then(({ data }) => {
-        setUser(data);
-        navigate(`/${handle || data.handle}`, { replace: true });
-      }).catch(() => {
+    if (!code) {
+      navigate('/login', { replace: true });
+      return;
+    }
+
+    api.post('/auth/exchange', { code })
+      .then(({ data }) => {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        setUser(data.user);
+        navigate(`/${data.user.handle}`, { replace: true });
+      })
+      .catch(() => {
         navigate('/login', { replace: true });
       });
-    } else {
-      navigate('/login', { replace: true });
-    }
   }, []);
 
   return (

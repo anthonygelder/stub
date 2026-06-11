@@ -2,6 +2,9 @@
   "name": "stub",
   "private": true,
   "workspaces": ["client", "server"],
+  "engines": {
+    "node": ">=20 <21"
+  },
   "scripts": {
     "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
     "prebuild": "cd server && npx prisma generate",

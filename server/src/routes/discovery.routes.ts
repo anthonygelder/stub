@@ -1,40 +1,22 @@
 import { Router } from 'express';
 import { optionalAuth } from '../middleware/auth';
+import { asyncHandler } from '../middleware/asyncHandler';
 import * as discoveryService from '../services/discovery.service';
 
 const router = Router();
 
-router.get('/trending', optionalAuth, async (req, res) => {
-  try {
-    const events = await discoveryService.getTrendingEvents();
-    res.json(events);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+router.get('/trending', optionalAuth, asyncHandler(async (_req, res) => {
+  res.json(await discoveryService.getTrendingEvents());
+}));
 
-router.get('/shared/:handle', optionalAuth, async (req, res) => {
-  try {
-    const myHandle = req.query.with as string;
-    if (!myHandle) return res.status(400).json({ error: '?with=handle is required' });
-    const shared = await discoveryService.getSharedEvents(myHandle, req.params.handle);
-    res.json(shared);
-  } catch (err: any) {
-    if (err.message === 'USER_NOT_FOUND') return res.status(404).json({ error: 'User not found' });
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+router.get('/shared/:handle', optionalAuth, asyncHandler(async (req, res) => {
+  const myHandle = req.query.with as string;
+  if (!myHandle) return res.status(400).json({ error: '?with=handle is required' });
+  res.json(await discoveryService.getSharedEvents(myHandle, req.params.handle));
+}));
 
-router.get('/from/:eventId', optionalAuth, async (req, res) => {
-  try {
-    const result = await discoveryService.getWhoElseWasThere(req.params.eventId);
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+router.get('/from/:eventId', optionalAuth, asyncHandler(async (req, res) => {
+  res.json(await discoveryService.getWhoElseWasThere(req.params.eventId));
+}));
 
 export default router;

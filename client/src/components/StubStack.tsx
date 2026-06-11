@@ -10,16 +10,8 @@ export function StubStack({ stubs }: StubStackProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dir, setDir] = useState(1);
 
-  if (stubs.length === 0) {
-    return (
-      <div className="text-center py-20">
-        <div className="text-6xl mb-4">📭</div>
-        <h2 className="text-xl font-semibold text-gray-300 mb-2">No stubs yet</h2>
-        <p className="text-gray-500">Check back soon.</p>
-      </div>
-    );
-  }
-
+  // Hooks must run unconditionally on every render, so they precede the
+  // empty-state early return below.
   const next = useCallback(() => {
     setDir(1);
     setCurrentIndex(prev => (prev + 1) % stubs.length);
@@ -29,6 +21,16 @@ export function StubStack({ stubs }: StubStackProps) {
     setDir(-1);
     setCurrentIndex(prev => (prev - 1 + stubs.length) % stubs.length);
   }, [stubs.length]);
+
+  if (stubs.length === 0) {
+    return (
+      <div className="text-center py-20">
+        <div className="text-6xl mb-4">📭</div>
+        <h2 className="text-xl font-semibold text-gray-300 mb-2">No stubs yet</h2>
+        <p className="text-gray-500">Check back soon.</p>
+      </div>
+    );
+  }
 
   const currentStub = stubs[currentIndex];
 

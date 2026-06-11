@@ -1,15 +1,7 @@
 import { createCanvas } from 'canvas';
-import path from 'path';
-import fs from 'fs';
 import { getTemplate } from '../templates';
 import { RenderData } from '../templates/types';
-
-const IMAGE_DIR = path.join(__dirname, '..', '..', 'data', 'images');
-
-// Ensure image directory exists
-if (!fs.existsSync(IMAGE_DIR)) {
-  fs.mkdirSync(IMAGE_DIR, { recursive: true });
-}
+import { storage } from '../lib/storage';
 
 export async function renderStub(data: RenderData, templateId?: string): Promise<Buffer> {
   const template = templateId ? getTemplate(templateId) : getTemplate(data.eventType);
@@ -21,11 +13,10 @@ export async function renderStub(data: RenderData, templateId?: string): Promise
   return canvas.toBuffer('image/png');
 }
 
+// Renders the stub and stores it, returning the public URL (saved as generatedImageUrl).
 export async function renderAndSaveStub(stubId: string, data: RenderData, templateId?: string): Promise<string> {
   const buffer = await renderStub(data, templateId);
-  const filePath = path.join(IMAGE_DIR, `${stubId}.png`);
-  fs.writeFileSync(filePath, buffer);
-  return filePath;
+  return storage.put(`images/${stubId}.png`, buffer, 'image/png');
 }
 
 export async function renderOGImage(data: RenderData): Promise<Buffer> {
