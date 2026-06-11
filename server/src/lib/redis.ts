@@ -4,6 +4,9 @@ import { config } from '../config';
 export const redis = new Redis(config.redis.url, {
   maxRetriesPerRequest: 3,
   lazyConnect: true,
+  // Railway's private network (*.railway.internal) is IPv6-only; ioredis defaults
+  // to IPv4 lookups, which yields ENOTFOUND. family: 0 resolves both stacks.
+  family: 0,
 });
 
 redis.on('error', (err) => {
