@@ -1,13 +1,13 @@
 import rateLimit, { Store } from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
 import { redis } from '../lib/redis';
-import { config } from '../config';
 
-// In production, back the limiters with Redis so limits are shared across
-// instances and survive restarts. In dev/test we use express-rate-limit's
-// default in-memory store (keeps the existing test behavior unchanged).
+// Default to express-rate-limit's in-memory store, which always works (per
+// instance) and never blocks requests if Redis is down. Opt in to a shared
+// Redis store only with RATE_LIMIT_REDIS=true (for multi-instance deployments
+// with a confirmed-reachable Redis).
 function makeStore(): Store | undefined {
-  if (config.nodeEnv !== 'production') return undefined;
+  if (process.env.RATE_LIMIT_REDIS !== 'true') return undefined;
   try {
     return new RedisStore({
       // ioredis: redis.call(cmd, ...args)

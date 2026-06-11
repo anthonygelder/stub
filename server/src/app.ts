@@ -90,8 +90,10 @@ export function createApp() {
       checks.redis = 'unavailable';
     }
 
-    const status = Object.values(checks).every(v => v === 'ok') ? 200 : 503;
-    res.status(status).json({ status: status === 200 ? 'ok' : 'degraded', checks });
+    // Redis is optional/degradable; only a DB failure makes the app unhealthy
+    // (otherwise a Redis blip would fail Railway's healthcheck and restart-loop).
+    const healthy = checks.database === 'ok';
+    res.status(healthy ? 200 : 503).json({ status: healthy ? 'ok' : 'degraded', checks });
   });
 
   app.use(notFound);
