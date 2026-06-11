@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: stub
+          POSTGRES_PASSWORD: stub
+          POSTGRES_DB: stub_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U stub"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://stub:stub@localhost:5432/stub_dev
+      REDIS_URL: redis://localhost:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # System libraries required to build the native `canvas` dependency.
+      - name: Install canvas build deps
+        run: sudo apt-get update && sudo apt-get install -y libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+
+      - run: npm install --legacy-peer-deps
+
+      - name: Prisma generate + migrate
+        run: cd server && npx prisma generate && npx prisma migrate deploy
+
+      - run: npm run lint
+
+      - run: npm test
+
+      - run: npm run build

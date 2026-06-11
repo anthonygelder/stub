@@ -1,8 +1,10 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { v4 as uuid } from 'uuid';
 import { prisma } from '../lib/prisma';
 import { config } from '../config';
+import { storeOAuthCode, consumeOAuthCode } from '../lib/redis';
 
 const SALT_ROUNDS = 10;
 
@@ -101,6 +103,34 @@ export async function refreshAccessToken(token: string) {
   } catch {
     throw new AuthError('Invalid refresh token', 401, 'INVALID_REFRESH_TOKEN');
   }
+}
+
+// Issues a short-lived single-use code for the OAuth redirect, so tokens never
+// appear in the callback URL. The client exchanges it via exchangeOAuthCode.
+export async function createOAuthCode(userId: string): Promise<string> {
+  const code = crypto.randomBytes(32).toString('hex');
+  await storeOAuthCode(code, userId);
+  return code;
+}
+
+export async function exchangeOAuthCode(code: string) {
+  const userId = await consumeOAuthCode(code);
+  if (!userId) throw new AuthError('Invalid or expired code', 400, 'INVALID_CODE');
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AuthError('User not found', 404, 'USER_NOT_FOUND');
+
+  const tokens = generateTokens(user.id);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken: tokens.refreshToken },
+  });
+
+  return { user: { id: user.id, email: user.email, handle: user.handle, displayName: user.displayName }, ...tokens };
+}
+
+export async function logout(userId: string) {
+  await prisma.user.update({ where: { id: userId }, data: { refreshToken: null } });
 }
 
 export class AuthError extends Error {

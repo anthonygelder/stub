@@ -55,6 +55,7 @@ export async function createStub(userId: string, input: CreateStubInput) {
     },
     include: {
       event: true,
+      user: { select: { displayName: true, handle: true } },
     },
   });
 
@@ -75,9 +76,9 @@ export async function createStub(userId: string, input: CreateStubInput) {
     eventDate: stub.event.eventDate.toISOString(),
     seat: (input.personalData as any)?.seat,
     companions: (input.personalData as any)?.companions,
-    userName: 'User',
-    userHandle: 'user',
-    stubNumber: 0,
+    userName: stub.user.displayName,
+    userHandle: stub.user.handle,
+    stubNumber: stub.event.stubCount,
   }).then(path => {
     prisma.stub.update({ where: { id: stub.id }, data: { generatedImageUrl: path } }).catch(() => {});
   }).catch(err => console.error('Render failed:', err));

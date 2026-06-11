@@ -79,7 +79,7 @@ function ReactionBar({ stubId, accent }: { stubId: string; accent: string }) {
         return next;
       });
       setMyType(data.removed ? null : type);
-    } catch {}
+    } catch { /* ignore reaction failure */ }
   };
 
   const types = ['was_there', 'jealous', 'want_to_go'] as const;

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate, AuthRequest, optionalAuth } from '../middleware/auth';
+import { asyncHandler } from '../middleware/asyncHandler';
 import * as stubService from '../services/stub.service';
 import { fanoutOnStubCreate } from '../services/feed.service';
 
@@ -23,54 +24,30 @@ const createStubSchema = z.object({
   designTemplateId: z.string().optional(),
 });
 
-router.post('/', authenticate, async (req: AuthRequest, res) => {
-  try {
-    const data = createStubSchema.parse(req.body);
-    const stub = await stubService.createStub(req.userId!, data);
-    res.status(201).json({ stub: { id: stub.id, personalData: stub.personalData, visibility: stub.visibility, createdAt: stub.createdAt }, event: stub.event });
-    fanoutOnStubCreate(req.userId!, stub.id).catch(err => console.error('Fan-out failed:', err));
-  } catch (err: any) {
-    if (err instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: err.errors });
-    }
-    if (err.message === 'EVENT_CANDIDATES') {
-      return res.status(409).json({ error: 'Multiple event candidates found. Please confirm the event.', code: 'EVENT_CANDIDATES' });
-    }
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+router.post('/', authenticate, asyncHandler(async (req: AuthRequest, res) => {
+  const data = createStubSchema.parse(req.body);
+  const stub = await stubService.createStub(req.userId!, data);
+  res.status(201).json({ stub: { id: stub.id, personalData: stub.personalData, visibility: stub.visibility, createdAt: stub.createdAt }, event: stub.event });
+  fanoutOnStubCreate(req.userId!, stub.id).catch(err => console.error('Fan-out failed:', err));
+}));
 
-router.get('/', authenticate, async (req: AuthRequest, res) => {
-  try {
-    const stubs = await stubService.getUserStubs(req.userId!);
-    res.json(stubs.map(s => ({
-      id: s.id,
-      personalData: s.personalData,
-      visibility: s.visibility,
-      createdAt: s.createdAt,
-      event: s.event,
-    })));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+router.get('/', authenticate, asyncHandler(async (req: AuthRequest, res) => {
+  const stubs = await stubService.getUserStubs(req.userId!);
+  res.json(stubs.map(s => ({
+    id: s.id,
+    personalData: s.personalData,
+    visibility: s.visibility,
+    createdAt: s.createdAt,
+    event: s.event,
+  })));
+}));
 
-router.get('/:id', optionalAuth, async (req, res) => {
-  try {
-    const stub = await stubService.getStubById(req.params.id);
-    if (stub.visibility === 'private' && stub.userId !== (req as any).userId) {
-      return res.status(404).json({ error: 'Stub not found' });
-    }
-    res.json(stub);
-  } catch (err: any) {
-    if (err.message === 'STUB_NOT_FOUND') {
-      return res.status(404).json({ error: 'Stub not found' });
-    }
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+router.get('/:id', optionalAuth, asyncHandler(async (req: AuthRequest, res) => {
+  const stub = await stubService.getStubById(req.params.id);
+  if (stub.visibility === 'private' && stub.userId !== req.userId) {
+    throw new Error('STUB_NOT_FOUND');
   }
-});
+  res.json(stub);
+}));
 
 export default router;

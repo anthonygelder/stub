@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import fs from 'fs';
 import { renderStub, renderAndSaveStub, renderOGImage } from '../services/render.service';
+import { storage } from '../lib/storage';
 
 const testData = {
   eventTitle: 'Test Concert',
@@ -33,12 +33,13 @@ describe('renderStub', () => {
 });
 
 describe('renderAndSaveStub', () => {
-  it('should save PNG to disk', async () => {
-    const filePath = await renderAndSaveStub('test-stub-id', testData);
-    expect(fs.existsSync(filePath)).toBe(true);
-    const stat = fs.statSync(filePath);
-    expect(stat.size).toBeGreaterThan(1000);
-    fs.unlinkSync(filePath); // cleanup
+  it('stores the PNG and returns its media URL', async () => {
+    const url = await renderAndSaveStub('test-stub-id', testData);
+    expect(url).toBe('/media/images/test-stub-id.png');
+
+    const buffer = await storage.get('images/test-stub-id.png');
+    expect(buffer).not.toBeNull();
+    expect(buffer!.length).toBeGreaterThan(1000);
   });
 });
 

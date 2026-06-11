@@ -35,4 +35,15 @@ export const config = {
       callbackUrl: `${process.env.CLIENT_URL || 'http://localhost:5173'}/api/auth/apple/callback`,
     },
   },
+  storage: {
+    driver: process.env.STORAGE_DRIVER || 'local', // 'local' | 's3'
+    s3: {
+      bucket: process.env.S3_BUCKET || '',
+      region: process.env.S3_REGION || 'auto',
+      endpoint: process.env.S3_ENDPOINT || '', // set for S3-compatible (e.g. Cloudflare R2)
+      accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
+      publicBaseUrl: process.env.S3_PUBLIC_BASE_URL || '', // public bucket/CDN base URL
+    },
+  },
 };
