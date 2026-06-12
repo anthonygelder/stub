@@ -9,7 +9,9 @@ watchPatterns = ["client/src/**", "server/src/**", "package.json"]
 NIXPACKS_INSTALL_CMD = "npm install --legacy-peer-deps"
 
 [deploy]
-startCommand = "cd server && npx prisma generate && npx prisma migrate deploy && node dist/index.js"
+# NODE_ENV is set on the node process only (not the build) so the server serves
+# the client build and uses production config, without npm skipping devDeps at build.
+startCommand = "cd server && npx prisma generate && npx prisma migrate deploy && NODE_ENV=production node dist/index.js"
 healthcheckPath = "/health"
 
 [deploy.variables]
