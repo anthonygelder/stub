@@ -11,11 +11,15 @@ function requireEnv(key: string, fallback?: string): string {
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Normalize: a trailing slash on CLIENT_URL would produce `//api/...` callback
+// URLs (breaking Google's redirect_uri match) and break CORS origin comparison.
+const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '');
+
 export const config = {
   port: parseInt(process.env.PORT || '3001', 10),
   jwtSecret: isProduction ? requireEnv('JWT_SECRET') : (process.env.JWT_SECRET || 'dev-secret'),
   jwtRefreshSecret: isProduction ? requireEnv('JWT_REFRESH_SECRET') : (process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret'),
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  clientUrl,
   nodeEnv: process.env.NODE_ENV || 'development',
   databaseUrl: requireEnv('DATABASE_URL', isProduction ? undefined : 'postgresql://stub:stub@localhost:5432/stub_dev'),
   redis: {
@@ -25,14 +29,14 @@ export const config = {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      callbackUrl: `${process.env.CLIENT_URL || 'http://localhost:5173'}/api/auth/google/callback`,
+      callbackUrl: `${clientUrl}/api/auth/google/callback`,
     },
     apple: {
       clientId: process.env.APPLE_CLIENT_ID || '',
       teamId: process.env.APPLE_TEAM_ID || '',
       keyId: process.env.APPLE_KEY_ID || '',
       privateKey: process.env.APPLE_PRIVATE_KEY || '',
-      callbackUrl: `${process.env.CLIENT_URL || 'http://localhost:5173'}/api/auth/apple/callback`,
+      callbackUrl: `${clientUrl}/api/auth/apple/callback`,
     },
   },
   storage: {
